@@ -3,6 +3,7 @@ package com.eventsourcing.bank_core.controller;
 
 import com.eventsourcing.bank_core.dto.AccountResponse;
 import com.eventsourcing.bank_core.dto.CreateAccountRequest;
+import com.eventsourcing.bank_core.dto.MoneyRequest;
 import com.eventsourcing.bank_core.service.AccountService;
 
 import jakarta.validation.Valid;
@@ -44,5 +45,24 @@ public class AccountController {
 
         return ResponseEntity.ok(accountService.getAccountById(id));
     }
-}
+
+     @PostMapping ("/{id}/deposit")
+    public ResponseEntity<Object> depositMoney(
+            @PathVariable UUID id,
+            @Valid @RequestBody MoneyRequest request) {
+
+           AccountResponse response = accountService.depositMoney(id, request.getAmount());
+                    return ResponseEntity.ok(response);
+            }
+
+             @PostMapping ("/{id}/withdraw")
+    public ResponseEntity<Object> withdrawMoney(
+            @PathVariable UUID id,
+            @Valid @RequestBody MoneyRequest request) {
+
+           AccountResponse response = accountService.withdrawMoney(id, request.getAmount());
+                    return ResponseEntity.ok(response);
+            }
+        }
+
 

@@ -84,4 +84,26 @@ public class AccountService {
                 .createdAt(account.getCreatedAt())
                 .build();
     }
+
+    @Transactional 
+     public AccountResponse depositMoney(UUID accountId, BigDecimal amount) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
+
+        if(account.getStatus() != AccountStatus.ACTIVE) {
+            throw new RuntimeException("Cannot deposit money to an inactive account: " + accountId);
+        }
+         
+         BigDecimal newBalance = account.getBalance().add(amount);
+          account.setBalance(newBalance);
+        Account updatedAccount = accountRepository.save(account);
+
+        return mapToResponse(updatedAccount);
+
+}
+
+    public AccountResponse withdrawMoney(UUID id, BigDecimal amount) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'withdrawMoney'");
+    }
 }
