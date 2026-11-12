@@ -3,6 +3,7 @@ package com.eventsourcing.bank_core.service;
 
 import com.eventsourcing.bank_core.dto.AccountResponse;
 import com.eventsourcing.bank_core.dto.CreateAccountRequest;
+import com.eventsourcing.bank_core.dto.MoneyRequest;
 import com.eventsourcing.bank_core.entity.Account;
 import com.eventsourcing.bank_core.entity.AccountStatus;
 import com.eventsourcing.bank_core.repository.AccountRepository;
@@ -101,9 +102,28 @@ public class AccountService {
         return mapToResponse(updatedAccount);
 
 }
+  @Transactional
+public AccountResponse withdrawMoney(UUID accountId, BigDecimal amount) {
 
-    public AccountResponse withdrawMoney(UUID id, BigDecimal amount) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'withdrawMoney'");
+    Account account = accountRepository.findById(accountId)
+            .orElseThrow(() ->
+                    new RuntimeException("Account not found: " + accountId));
+
+    if (account.getStatus() != AccountStatus.ACTIVE) {
+        throw new RuntimeException("Account is not active");
     }
+
+    if (account.getBalance().compareTo(amount) < 0) {
+        throw new RuntimeException("Insufficient balance");
+    }
+
+    BigDecimal newBalance = account.getBalance()
+            .subtract(amount);
+
+    account.setBalance(newBalance);
+
+    Account updatedAccount = accountRepository.save(account);
+
+    return mapToResponse(updatedAccount);
+}
 }
