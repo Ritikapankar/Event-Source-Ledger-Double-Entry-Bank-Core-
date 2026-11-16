@@ -3,7 +3,6 @@ package com.eventsourcing.bank_core.service;
 
 import com.eventsourcing.bank_core.dto.AccountResponse;
 import com.eventsourcing.bank_core.dto.CreateAccountRequest;
-import com.eventsourcing.bank_core.dto.MoneyRequest;
 import com.eventsourcing.bank_core.entity.Account;
 import com.eventsourcing.bank_core.entity.AccountStatus;
 import com.eventsourcing.bank_core.repository.AccountRepository;
