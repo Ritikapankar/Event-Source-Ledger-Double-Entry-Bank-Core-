@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.AccessLevel;
+import jakarta.persistence.Version;
 
 import java.util.UUID;
+
 
 @Entity
 @Table(name = "ledger_accounts")
@@ -26,6 +28,9 @@ public class LedgerAccount {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LedgerAccountType accountType;
+
+    @Version 
+    private Long version;
 
     public LedgerAccount(String accountCode,
                          String accountName,

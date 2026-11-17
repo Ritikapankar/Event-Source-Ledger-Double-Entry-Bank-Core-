@@ -6,7 +6,6 @@ import com.eventsourcing.bank_core.repository.LedgerAccountRepository;
 import com.eventsourcing.bank_core.repository.LedgerTransactionRepository;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.boot.actuate.autoconfigure.wavefront.WavefrontProperties.Sender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
