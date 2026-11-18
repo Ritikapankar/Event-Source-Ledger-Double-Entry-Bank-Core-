@@ -35,15 +35,21 @@ public class LedgerEntry {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
-    public LedgerEntry(
-            LedgerAccount ledgerAccount,
-            LedgerEntryType entryType,
-            BigDecimal amount) {
-        this.ledgerAccount = ledgerAccount;
-        this.entryType = entryType;
-        this.amount = amount;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "customer_account_id")
+private Account customerAccount;
 
+    public LedgerEntry(
+        LedgerAccount ledgerAccount,
+        Account customerAccount,
+        LedgerEntryType entryType,
+        BigDecimal amount) {
+
+    this.ledgerAccount = ledgerAccount;
+    this.customerAccount = customerAccount;
+    this.entryType = entryType;
+    this.amount = amount;
+}
     void setTransaction(LedgerTransaction transaction) {
         this.transaction = transaction;
     }
