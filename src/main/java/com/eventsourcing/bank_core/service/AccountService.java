@@ -5,6 +5,7 @@ import com.eventsourcing.bank_core.dto.AccountResponse;
 import com.eventsourcing.bank_core.dto.CreateAccountRequest;
 import com.eventsourcing.bank_core.entity.Account;
 import com.eventsourcing.bank_core.entity.AccountStatus;
+import com.eventsourcing.bank_core.dto.AccountEventType;
 import com.eventsourcing.bank_core.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final AccountEventService accountEventService;
 
     // Create Account
     @Transactional
@@ -37,6 +39,13 @@ public class AccountService {
                 .build();
 
         Account savedAccount = accountRepository.save(account);
+
+        accountEventService.recordEvent(
+                savedAccount,
+                AccountEventType.ACCOUNT_CREATED,
+                BigDecimal.ZERO,
+                "Account created"
+        );
 
         return mapToResponse(savedAccount);
     }
@@ -62,6 +71,70 @@ public class AccountService {
         return mapToResponse(account);
     }
 
+    // Deposit Money
+    @Transactional
+    public AccountResponse depositMoney(UUID accountId, BigDecimal amount) {
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() ->
+                        new RuntimeException("Account not found: " + accountId));
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new RuntimeException("Account is not active");
+        }
+
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+
+        account.setBalance(account.getBalance().add(amount));
+
+        Account updatedAccount = accountRepository.save(account);
+
+        accountEventService.recordEvent(
+                updatedAccount,
+                AccountEventType.MONEY_DEPOSITED,
+                amount,
+                "Money deposited into account"
+        );
+
+        return mapToResponse(updatedAccount);
+    }
+
+    // Withdraw Money
+    @Transactional
+    public AccountResponse withdrawMoney(UUID accountId, BigDecimal amount) {
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() ->
+                        new RuntimeException("Account not found: " + accountId));
+
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new RuntimeException("Account is not active");
+        }
+
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
+        }
+
+        account.setBalance(account.getBalance().subtract(amount));
+
+        Account updatedAccount = accountRepository.save(account);
+
+        accountEventService.recordEvent(
+                updatedAccount,
+                AccountEventType.MONEY_WITHDRAWN,
+                amount,
+                "Money withdrawn from account"
+        );
+
+        return mapToResponse(updatedAccount);
+    }
+
     // Generate Account Number
     private String generateAccountNumber() {
         return "ACC" + UUID.randomUUID()
@@ -84,45 +157,4 @@ public class AccountService {
                 .createdAt(account.getCreatedAt())
                 .build();
     }
-
-    @Transactional 
-     public AccountResponse depositMoney(UUID accountId, BigDecimal amount) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
-
-        if(account.getStatus() != AccountStatus.ACTIVE) {
-            throw new RuntimeException("Cannot deposit money to an inactive account: " + accountId);
-        }
-         
-         BigDecimal newBalance = account.getBalance().add(amount);
-          account.setBalance(newBalance);
-        Account updatedAccount = accountRepository.save(account);
-
-        return mapToResponse(updatedAccount);
-
-}
-  @Transactional
-public AccountResponse withdrawMoney(UUID accountId, BigDecimal amount) {
-
-    Account account = accountRepository.findById(accountId)
-            .orElseThrow(() ->
-                    new RuntimeException("Account not found: " + accountId));
-
-    if (account.getStatus() != AccountStatus.ACTIVE) {
-        throw new RuntimeException("Account is not active");
-    }
-
-    if (account.getBalance().compareTo(amount) < 0) {
-        throw new RuntimeException("Insufficient balance");
-    }
-
-    BigDecimal newBalance = account.getBalance()
-            .subtract(amount);
-
-    account.setBalance(newBalance);
-
-    Account updatedAccount = accountRepository.save(account);
-
-    return mapToResponse(updatedAccount);
-}
 }
