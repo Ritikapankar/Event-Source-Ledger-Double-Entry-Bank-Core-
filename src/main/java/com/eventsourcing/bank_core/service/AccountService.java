@@ -79,15 +79,18 @@ public class AccountService {
                 .orElseThrow(() ->
                         new RuntimeException("Account not found: " + accountId));
 
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new RuntimeException("Account is not active");
-        }
-
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
 
-        account.setBalance(account.getBalance().add(amount));
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new RuntimeException("Account is not active");
+        }
+
+        BigDecimal currentBalance = account.getBalance() == null
+                ? BigDecimal.ZERO
+                : account.getBalance();
+        account.setBalance(currentBalance.add(amount));
 
         Account updatedAccount = accountRepository.save(account);
 
@@ -109,19 +112,23 @@ public class AccountService {
                 .orElseThrow(() ->
                         new RuntimeException("Account not found: " + accountId));
 
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new RuntimeException("Account is not active");
-        }
-
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
 
-        if (account.getBalance().compareTo(amount) < 0) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new RuntimeException("Account is not active");
+        }
+
+        BigDecimal currentBalance = account.getBalance() == null
+                ? BigDecimal.ZERO
+                : account.getBalance();
+
+        if (currentBalance.compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient balance");
         }
 
-        account.setBalance(account.getBalance().subtract(amount));
+        account.setBalance(currentBalance.subtract(amount));
 
         Account updatedAccount = accountRepository.save(account);
 
@@ -137,11 +144,17 @@ public class AccountService {
 
     // Generate Account Number
     private String generateAccountNumber() {
-        return "ACC" + UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 12)
-                .toUpperCase();
+        String accountNumber;
+
+        do {
+            accountNumber = "ACC" + UUID.randomUUID()
+                    .toString()
+                    .replace("-", "")
+                    .substring(0, 12)
+                    .toUpperCase();
+        } while (accountRepository.existsByAccountNumber(accountNumber));
+
+        return accountNumber;
     }
 
     // Entity to DTO Mapping
