@@ -39,5 +39,10 @@ public BigDecimal replayBalance(UUID accountId) {
 
     return balance;
 }
+
+   public void recordEvent(Account updatedAccount, AccountEventType moneyDeposited, BigDecimal amount, String string) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'recordEvent'");
+   }
     }
 
