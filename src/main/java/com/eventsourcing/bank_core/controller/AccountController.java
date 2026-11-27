@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.eventsourcing.bank_core.dto.AccountReconciliationResponse;
 
 
 @RestController
@@ -74,6 +75,17 @@ public ResponseEntity<BigDecimal> replayBalance(@PathVariable UUID id) {
 
     return ResponseEntity.ok(balance);
 }
+
+@GetMapping("/{id}/reconciliation")
+public ResponseEntity<AccountReconciliationResponse> reconcileBalance(
+        @PathVariable UUID id) {
+
+    AccountReconciliationResponse response =
+            accountEventService.reconcileBalance(id);
+
+    return ResponseEntity.ok(response);
+}
+
         }
 
 
