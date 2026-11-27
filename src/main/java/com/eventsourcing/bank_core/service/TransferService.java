@@ -1,6 +1,7 @@
 
 package com.eventsourcing.bank_core.service;
 
+import com.eventsourcing.bank_core.dto.AccountEventType;
 import com.eventsourcing.bank_core.dto.TransferRequest;
 import com.eventsourcing.bank_core.entity.Account;
 import com.eventsourcing.bank_core.entity.AccountStatus;
@@ -8,7 +9,6 @@ import com.eventsourcing.bank_core.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.util.UUID;
 
@@ -16,6 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransferService {
 
+    private final AccountEventService accountEventService;
     private final AccountRepository accountRepository;
 
      private final LedgerService ledgerService;
@@ -56,6 +57,21 @@ public void transferMoney(TransferRequest request) {
     accountRepository.save(receiver);
 
     ledgerService.recordTransfer(sender, receiver, amount);
+
+
+    accountEventService.recordEvent(
+        sender,
+        AccountEventType.MONEY_WITHDRAWN,
+        amount,
+        "Transfer sent to " + receiver.getAccountNumber()
+);
+
+accountEventService.recordEvent(
+        receiver,
+        AccountEventType.MONEY_DEPOSITED,
+        amount,
+        "Transfer received from " + sender.getAccountNumber()
+);
 }
 
 }
